@@ -31,22 +31,22 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
-@Mod(RnRJointMod.MODID)
+@Mod(RnRJointMod.MOD_ID)
 public class RnRJointMod {
     // Define mod id in a common place for everything to reference
-    public static final String MODID = "rnrjointmod";
+    public static final String MOD_ID = "rnrjointmod";
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
     // Create a Deferred Register to hold Blocks which will all be registered under
     // the "rnrjointmod" namespace
-    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
+    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MOD_ID);
     // Create a Deferred Register to hold Items which will all be registered under
     // the "rnrjointmod" namespace
-    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
+    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MOD_ID);
     // Create a Deferred Register to hold CreativeModeTabs which will all be
     // registered under the "rnrjointmod" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister
-            .create(Registries.CREATIVE_MODE_TAB, MODID);
+            .create(Registries.CREATIVE_MODE_TAB, MOD_ID);
 
     // Creates a new Block with the id "rnrjointmod:example_block", combining the
     // namespace and path
@@ -67,7 +67,7 @@ public class RnRJointMod {
     // item, that is placed after the combat tab
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS
             .register("example_tab", () -> CreativeModeTab.builder()
-                    .title(Component.translatable("itemGroup." + MODID)) // The language key for the title of your
+                    .title(Component.translatable("itemGroup." + MOD_ID)) // The language key for the title of your
                                                                          // CreativeModeTab
                     .withTabsBefore(CreativeModeTabs.COMBAT)
                     .icon(() -> EXAMPLE_ITEM.get().getDefaultInstance())

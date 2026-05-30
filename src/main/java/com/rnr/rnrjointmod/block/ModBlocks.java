@@ -1,7 +1,8 @@
-package com.rnr;
+package com.rnr.rnrjointmod.block;
 
 
-import com.rnr.rnrjointmod.ExampleMod;
+
+import com.rnr.rnrjointmod.RnRJointMod;
 import com.rnr.rnrjointmod.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.BlockItem;
@@ -19,7 +20,7 @@ import java.util.function.Supplier;
 
 public class ModBlocks {
     public static final DeferredRegister.Blocks BLOCKS =
-            DeferredRegister.createBlocks(ExampleMod.MOD_ID);
+            DeferredRegister.createBlocks(RnRJointMod.MOD_ID);
 
 
     public static final  DeferredBlock<Block> BLOCK = registerBlock("cell_block",
