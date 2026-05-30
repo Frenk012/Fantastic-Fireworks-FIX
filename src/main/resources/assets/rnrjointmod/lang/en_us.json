@@ -1,0 +1,13 @@
+{
+  "itemGroup.rnrjointmod": "RnR Joint Mod Tab",
+  "block.rnrjointmod.example_block": "Example Block",
+  "item.rnrjointmod.example_item": "Example Item",
+
+  "rnrjointmod.configuration.title": "RnR Joint Mod Configs",
+  "rnrjointmod.configuration.section.rnrjointmod.common.toml": "RnR Joint Mod Configs",
+  "rnrjointmod.configuration.section.rnrjointmod.common.toml.title": "RnR Joint Mod Configs",
+  "rnrjointmod.configuration.items": "Item List",
+  "rnrjointmod.configuration.logDirtBlock": "Log Dirt Block",
+  "rnrjointmod.configuration.magicNumberIntroduction": "Magic Number Text",
+  "rnrjointmod.configuration.magicNumber": "Magic Number"
+}
