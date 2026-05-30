@@ -19,7 +19,7 @@ public class ModCreativeModeTab {
 
     public static final Supplier<CreativeModeTab> RNR_TAB = CREATIVE_MODE_TAB.register("rnr_tab",
             ()-> CreativeModeTab.builder()
-                    .icon(()-> new ItemStack(Blocks.BLACK_CONCRETE))
+                    .icon(()-> new ItemStack(Blocks.LAVA))
                     .title(Component.translatable("creativetab.examplemod.rnr_tab"))
                     .displayItems((itemDisplayParameters, output) -> {
                         output.accept(ModBlocks.BLOCK);
