@@ -3,6 +3,7 @@ package com.rnr.rnrjointmod;
 import com.rnr.rnrjointmod.block.ModBlocks;
 import com.rnr.rnrjointmod.item.ModCreativeModeTab;
 import com.rnr.rnrjointmod.item.ModItems;
+import com.rnr.rnrjointmod.particals.ExampleParticleEffect;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
