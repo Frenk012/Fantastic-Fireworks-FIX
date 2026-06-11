@@ -1,6 +1,7 @@
 package com.rnr.rnrjointmod;
 
 import com.rnr.rnrjointmod.block.ModBlocks;
+import com.rnr.rnrjointmod.block.entity.ModBlockEntities;
 import com.rnr.rnrjointmod.item.ModCreativeModeTab;
 import com.rnr.rnrjointmod.item.ModItems;
 import com.rnr.rnrjointmod.particals.ExampleParticleEffect;
@@ -91,6 +92,7 @@ public class RnRJointMod {
 
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
+        ModBlockEntities.register(modEventBus);
         ModCreativeModeTab.register(modEventBus);
         NeoForge.EVENT_BUS.register(this);
 

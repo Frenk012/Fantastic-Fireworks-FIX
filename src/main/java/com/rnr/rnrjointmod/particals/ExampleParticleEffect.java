@@ -3,58 +3,138 @@ package com.rnr.rnrjointmod.particals;
 import com.rnr.rnrjointmod.RnRJointMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.common.NeoForge;
 import team.lodestar.lodestone.modules.core.easing.Easing;
 import team.lodestar.lodestone.registry.common.particle.LodestoneParticleTypes;
 import team.lodestar.lodestone.systems.particle.builder.WorldParticleBuilder;
 import team.lodestar.lodestone.systems.particle.data.GenericParticleData;
 import team.lodestar.lodestone.systems.particle.data.color.ColorParticleData;
-import team.lodestar.lodestone.systems.particle.data.spin.SpinParticleData;
-import team.lodestar.lodestone.systems.particle.world.type.LodestoneWorldParticleType;
+import team.lodestar.lodestone.systems.particle.world.LodestoneWorldParticle;
 
 import java.awt.*;
-import java.beans.EventHandler;
+import java.util.function.Consumer;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = RnRJointMod.MOD_ID)
 public class ExampleParticleEffect {
+
+    public static Consumer<LodestoneWorldParticle> consumer = null;
+    public static int tick = 0;
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
-            spawnExampleParticles(player.level(), player.position());
+            tick += 1;
+            if(tick % 60 == 0) {
+                //generateShpere(player.level(), 700, player.position());
+                //spawnMainParticles(player.level(), player.position());
+                //System.out.println("shpere");
+            }
             //System.out.println("called");
         }
 
     }
+    public static void generateShpere(Level level, int n, Vec3 middlePos){
+        double goldenRatio = 1 + Math.sqrt(5) / 4;
+        double angleIncrement = 3.141592653 * 2 * goldenRatio;
+        double mult = 3;
+        for(int i = 0; i < n; i++){
+            float dist = (float) i /n;
+            double incline = Math.acos(1 - 2 * dist);
+            double azimuth = angleIncrement * i;
 
-    public static void spawnExampleParticles(Level level, Vec3 pos) {
-        Color startingColor = new Color(100, 0, 100);
-        Color endingColor = new Color(0, 100, 200);
+            double x = Math.sin(incline)*Math.cos(azimuth)*mult;
+            double y = Math.sin(incline)*Math.sin(azimuth)*mult;
+            double z = Math.cos(incline)*mult;
+            Vec3 pos = new Vec3(x, y, z);
+            System.out.println(middlePos);
+            pos = pos.add(middlePos);
+            spawnMainParticles(level, pos, middlePos, true);
+        }
+    }
+    public static double map(double value, double start1, double stop1, double start2, double stop2) {
+        return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
+    }
+
+
+    public static Vec3 repulsionFeild (Level level, LodestoneWorldParticle particle, Vec3 middlePos, double range, boolean trail){
+        Vec3 pos = particle.getParticlePosition();
+        Vec3 velo = particle.getParticleSpeed();
+        int age = particle.getAge();
+        double k = 1.0;
+
+
+        Vec3 vec3dist = middlePos.subtract(pos);
+
+        double mag = Math.sqrt(vec3dist.x * vec3dist.x + vec3dist.y * vec3dist.y + vec3dist.z * vec3dist.z);
+
+        if(mag <= range && age <= 20 ){
+            vec3dist = vec3dist.normalize();
+            vec3dist = vec3dist.scale(k * map(mag, 0, range, -1, 0));
+            velo = velo.add(vec3dist).add(0, 0.2, 0);
+
+            //System.out.println("hi" + vec3dist);
+        }else {
+            velo = velo.scale(0.95);
+        }
+        if (trail && pos != particle.getOldParticlePosition()) {
+            spawnTrail(level, pos, middlePos, false);
+        }
+        return velo;
+    }
+
+
+    public static void spawnMainParticles(Level level, Vec3 pos, Vec3 middlePos, boolean trail) {
+        float range = 10;
+
+        consumer = particle ->  particle.setParticleSpeed(repulsionFeild(level, particle, middlePos, range, trail) ); //Math.abs(finalPos.distanceTo(middlePos))
+
+        //System.out.println("particle made");
+        //pos = pos.add(0, -1,0);
+       // if(level.getBlockState(BlockPos.containing(pos)) != Blocks.AIR.defaultBlockState()) {
+            Color startingColor = new Color(112, 251, 5);
+            Color endingColor = new Color(31, 57, 10);
+            WorldParticleBuilder.create(LodestoneParticleTypes.WISP_PARTICLE)
+                    .setTransparencyData(GenericParticleData.create(0.75f, 0.25f).build())
+                    .setColorData(ColorParticleData.create(startingColor, endingColor).setCoefficient(1.4f).setEasing(Easing.BOUNCE_IN_OUT).build())
+                    .setLifetime(50)
+                    .setScaleData(GenericParticleData.create(0.5f, 0.2f).build())
+                    //.setRandomMotion(0.001)
+                    //.enableNoClip()
+                    //.createBlockOutline(level, BlockPos.containing(pos), level.getBlockState(BlockPos.containing(pos)))
+                    .setRandomOffset(0.9)
+                    .enableForcedSpawn()
+                    .addTickActor(consumer)
+                    .setGravity(3.5f)
+                    .setFullBrightLighting()
+                    //.setFriction(0)
+
+                    .spawn(level, pos);
+
+        //}
+    }
+
+    public static void spawnTrail(Level level, Vec3 pos, Vec3 middlePos, boolean trail) {
+        Vec3 finalPos = pos;
+        Color startingColor = new Color(73, 69, 69);
+        Color endingColor = new Color(149, 149, 143);
         WorldParticleBuilder.create(LodestoneParticleTypes.WISP_PARTICLE)
-                .setScaleData(GenericParticleData.create(0.5f, 0).build())
-                .setTransparencyData(GenericParticleData.create(0.75f, 0.25f).build())
+                .setTransparencyData(GenericParticleData.create(0.50f, 0.10f).build())
                 .setColorData(ColorParticleData.create(startingColor, endingColor).setCoefficient(1.4f).setEasing(Easing.BOUNCE_IN_OUT).build())
-                .setSpinData(SpinParticleData.create(0.2f, 0.4f).setSpinOffset((level.getGameTime() * 0.2f) % 6.28f).setEasing(Easing.QUARTIC_IN).build())
-                .setLifetime(40)
-                .addMotion(0, 0.01f, 0)
-                .enableNoClip()
+                .setLifetime(10)
                 .setScaleData(GenericParticleData.create(0.5f, 0).build())
-                .setTransparencyData(GenericParticleData.create(0.75f, 0.25f).build())
-                .setColorData(ColorParticleData.create(startingColor, endingColor).setCoefficient(1.4f).setEasing(Easing.BOUNCE_IN_OUT).build())
-                .setSpinData(SpinParticleData.create(0.2f, 0.4f).setSpinOffset((level.getGameTime() * 0.2f) % 6.28f).setEasing(Easing.QUARTIC_IN).build())
-                .setLifetime(40)
-                .addMotion(0, 0.01f, 0)
-                .enableNoClip()
-                .spawn(level, pos.x, pos.y, pos.z);
+                //.enableNoClip()
+                .setRandomOffset(0.1)
+                .setGravity(0.1f)
+                .setFullBrightLighting()
+                .enableForcedSpawn()
+                .spawn(level, pos);
+
+        //}
     }
 }

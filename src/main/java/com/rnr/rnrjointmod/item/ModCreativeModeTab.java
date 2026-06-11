@@ -23,8 +23,9 @@ public class ModCreativeModeTab {
                     .title(Component.translatable("creativetab.examplemod.rnr_tab"))
                     .displayItems((itemDisplayParameters, output) -> {
                         output.accept(ModBlocks.BLOCK);
+                        output.accept(ModBlocks.FIREWORK_CAKE);
                         output.accept(ModItems.ITEM);
-
+                        output.accept(ModItems.PARTICALTESTER);
                     })
 
                     .build());

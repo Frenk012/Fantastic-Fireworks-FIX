@@ -3,6 +3,7 @@ package com.rnr.rnrjointmod.block;
 
 
 import com.rnr.rnrjointmod.RnRJointMod;
+import com.rnr.rnrjointmod.block.Custom.FireworkCake;
 import com.rnr.rnrjointmod.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.BlockItem;
@@ -23,9 +24,11 @@ public class ModBlocks {
             DeferredRegister.createBlocks(RnRJointMod.MOD_ID);
 
 
-    public static final  DeferredBlock<Block> BLOCK = registerBlock("cell_block",
+    public static final  DeferredBlock<Block> BLOCK = registerBlock("block",
             () -> new Block(BlockBehaviour.Properties.of().noLootTable()));
 
+    public static final  DeferredBlock<Block> FIREWORK_CAKE = registerBlock("firework_cake",
+            () -> new FireworkCake(BlockBehaviour.Properties.of().noOcclusion()));
 
 
 
