@@ -4,12 +4,15 @@ import com.rnr.rnrjointmod.block.ModBlocks;
 import com.rnr.rnrjointmod.block.entity.ModBlockEntities;
 import com.rnr.rnrjointmod.item.ModCreativeModeTab;
 import com.rnr.rnrjointmod.item.ModItems;
-import com.rnr.rnrjointmod.particals.ExampleParticleEffect;
+import com.rnr.rnrjointmod.keymappings.ModKeyMappings;
+import com.rnr.rnrjointmod.screen.ModMenuTypes;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.food.FoodProperties;
@@ -18,13 +21,11 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -93,6 +94,7 @@ public class RnRJointMod {
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
         ModBlockEntities.register(modEventBus);
+        ModMenuTypes.register(modEventBus);
         ModCreativeModeTab.register(modEventBus);
         NeoForge.EVENT_BUS.register(this);
 
@@ -117,5 +119,18 @@ public class RnRJointMod {
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
+    }
+    @EventBusSubscriber(modid = RnRJointMod.MOD_ID, value = Dist.CLIENT)
+    static class ClientModEvents {
+        @SubscribeEvent
+        static void onClientSetup(FMLClientSetupEvent event) {
+            LOGGER.info("HELLO FROM CLIENT SETUP");
+
+        }
+        public void RnRJointModClient(IEventBus modEventBus){
+            modEventBus.addListener(ModKeyMappings::registerBindings);
+        }
+
+
     }
 }

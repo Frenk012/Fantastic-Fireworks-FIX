@@ -1,5 +1,6 @@
 package com.rnr.rnrjointmod.item.custom;
 
+import com.rnr.rnrjointmod.particals.Trail;
 import io.netty.util.AttributeMap;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.InteractionHand;
@@ -36,12 +37,9 @@ public class ParticleTester extends Item {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
-        ListTag oldattribute =  player.getAttributes().save();
-
         HitResult hitResult = player.pick(100, 0.0f, false);
-        player.getAttributes().load(oldattribute);
         Vec3 pos = hitResult.getLocation();
-        generateShpere(player.level(), 150, pos);
+        generateShpere(player.level(), 150, pos, new Trail(level, pos));
 
         System.out.println("used" + pos);
         return super.use(level, player, usedHand);

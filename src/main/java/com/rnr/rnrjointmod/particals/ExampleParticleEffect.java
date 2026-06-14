@@ -39,7 +39,7 @@ public class ExampleParticleEffect {
         }
 
     }
-    public static void generateShpere(Level level, int n, Vec3 middlePos){
+    public static void generateShpere(Level level, int n, Vec3 middlePos, Trail trailobj){
         double goldenRatio = 1 + Math.sqrt(5) / 4;
         double angleIncrement = 3.141592653 * 2 * goldenRatio;
         double mult = 3;
@@ -54,7 +54,7 @@ public class ExampleParticleEffect {
             Vec3 pos = new Vec3(x, y, z);
             System.out.println(middlePos);
             pos = pos.add(middlePos);
-            spawnMainParticles(level, pos, middlePos, true);
+            spawnMainParticles(level, pos, middlePos, true,  trailobj);
         }
     }
     public static double map(double value, double start1, double stop1, double start2, double stop2) {
@@ -62,7 +62,7 @@ public class ExampleParticleEffect {
     }
 
 
-    public static Vec3 repulsionFeild (Level level, LodestoneWorldParticle particle, Vec3 middlePos, double range, boolean trail){
+    public static Vec3 repulsionFeild (Level level, LodestoneWorldParticle particle, Vec3 middlePos, double range, boolean trail, Trail trailobj){
         Vec3 pos = particle.getParticlePosition();
         Vec3 velo = particle.getParticleSpeed();
         int age = particle.getAge();
@@ -83,16 +83,18 @@ public class ExampleParticleEffect {
             velo = velo.scale(0.95);
         }
         if (trail && pos != particle.getOldParticlePosition()) {
-            spawnTrail(level, pos, middlePos, false);
+            trailobj.col1 = Color.cyan;
+            trailobj.pos = pos;
+            trailobj.spawnTrail();
         }
         return velo;
     }
 
 
-    public static void spawnMainParticles(Level level, Vec3 pos, Vec3 middlePos, boolean trail) {
+    public static void spawnMainParticles(Level level, Vec3 pos, Vec3 middlePos, boolean trail, Trail trailobj) {
         float range = 10;
 
-        consumer = particle ->  particle.setParticleSpeed(repulsionFeild(level, particle, middlePos, range, trail) ); //Math.abs(finalPos.distanceTo(middlePos))
+        consumer = particle ->  particle.setParticleSpeed(repulsionFeild(level, particle, middlePos, range, trail, trailobj) ); //Math.abs(finalPos.distanceTo(middlePos))
 
         //System.out.println("particle made");
         //pos = pos.add(0, -1,0);
