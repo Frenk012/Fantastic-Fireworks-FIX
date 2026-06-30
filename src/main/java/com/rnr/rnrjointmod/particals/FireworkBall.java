@@ -35,8 +35,8 @@ public class FireworkBall {
     public int repulsionlength = 20;
 
 
-    public FireworkBall(Level level, Vec3 pos){
-        this.pos = pos;
+    public FireworkBall(Level level, Vec3 middlePos){
+        this.middlePos = middlePos;
         this.level = level;
     }
 
@@ -56,9 +56,8 @@ public class FireworkBall {
             double x = Math.sin(incline)*Math.cos(azimuth)*mult;
             double y = Math.sin(incline)*Math.sin(azimuth)*mult;
             double z = Math.cos(incline)*mult;
-            Vec3 pos = new Vec3(x, y, z);
-            System.out.println(this.middlePos);
-            pos = pos.add(this.middlePos);
+            this.pos = new Vec3(x, y, z);
+            this.pos = this.pos.add(this.middlePos);
             this.BallParticles();
         }
     }
@@ -114,7 +113,7 @@ public class FireworkBall {
                 .addTickActor(this.consumer)
                 .setGravity(this.gravity)
                 .setFullBrightLighting()
-                .repeat(this.level, this.pos, this.count);
+                .repeat(this.level, this.pos, 1);
     }
 
 

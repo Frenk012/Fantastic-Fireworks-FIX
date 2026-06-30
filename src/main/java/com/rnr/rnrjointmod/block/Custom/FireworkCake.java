@@ -3,6 +3,7 @@ package com.rnr.rnrjointmod.block.Custom;
 import com.mojang.serialization.MapCodec;
 import com.rnr.rnrjointmod.block.entity.FireworkCakeEntity;
 import com.rnr.rnrjointmod.block.entity.ModBlockEntities;
+import com.rnr.rnrjointmod.dataattatchments.ModDataAttatchments;
 import com.rnr.rnrjointmod.particals.*;
 import com.rnr.rnrjointmod.screen.custom.FireworkCakeScreen;
 import net.minecraft.client.Minecraft;
@@ -42,7 +43,14 @@ public class FireworkCake extends BaseEntityBlock {
 //        );
     }
 
-//    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+    @Override
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        FireworkCakeEntity fireworkCakeEntity = (FireworkCakeEntity) level.getBlockEntity(pos);
+        assert fireworkCakeEntity != null;
+        fireworkCakeEntity.setup(level, pos);
+        System.out.println("placed");
+    }
+    //    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
 //        if (!level.isClientSide) {
 //            boolean flag = (Boolean) state.getValue(LIT);
 //            if (flag != level.hasNeighborSignal(pos)) {
@@ -69,10 +77,15 @@ public class FireworkCake extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (player.isCrouching() && level.isClientSide) {
-            //add to their imgui window
-        } else{
-            shootFirework(level, pos);
+        if (player.isCrouching() && !level.isClientSide) {
+            player.setData(ModDataAttatchments.FBLOCK, pos);   ///this totaly wont cause any problembs in the feuture
+            System.out.println( player.getData(ModDataAttatchments.FBLOCK));
+        }if (player.isCrouching() && level.isClientSide) {
+            player.setData(ModDataAttatchments.FBLOCK, pos);   ///this totaly wont cause any problembs in the feuture
+            System.out.println( player.getData(ModDataAttatchments.FBLOCK));
+        }else if(!player.isCrouching()){
+            FireworkCakeEntity fireworkCakeEntity = (FireworkCakeEntity) level.getBlockEntity(pos);
+            fireworkCakeEntity.shootFirework(level, pos.above());
         }
         return super.useWithoutItem(state, level, pos, player, hitResult);
     }
@@ -91,18 +104,18 @@ public class FireworkCake extends BaseEntityBlock {
     public static float defaultRanoffset = 0.9f;
 
 
-    public static void shootFirework(Level level, BlockPos pos){
-        Vec3 fpos = pos.getCenter();
-        Trail trail = new Trail(level, fpos);
-        FireworkBeginning fireworkBeginning = new FireworkBeginning(level, fpos);
-        FireworkBall fireworkBall = new FireworkBall(level, fpos);
-        fireworkBeginning.trail = trail;
-        fireworkBeginning.fireworkBall = fireworkBall;
-        trail.col1 = Color.cyan;
-        trail.col2 = Color.green;
-        fireworkBeginning.lifetime = 20;
-        fireworkBeginning.BodyParticles();
-    }
+//    public static void shootFirework(Level level, BlockPos pos){
+//        Vec3 fpos = pos.getCenter();
+//        Trail trail = new Trail(level, fpos);
+//        FireworkBeginning fireworkBeginning = new FireworkBeginning(level, fpos);
+//        FireworkBall fireworkBall = new FireworkBall(level, fpos);
+//        fireworkBeginning.trail = trail;
+//        fireworkBeginning.fireworkBall = fireworkBall;
+//        trail.col1 = Color.cyan;
+//        trail.col2 = Color.green;
+//        fireworkBeginning.lifetime = 20;
+//        fireworkBeginning.BodyParticles();
+//    }
 
 
         @Override

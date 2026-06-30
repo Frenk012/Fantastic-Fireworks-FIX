@@ -2,6 +2,7 @@ package com.rnr.rnrjointmod;
 
 import com.rnr.rnrjointmod.block.ModBlocks;
 import com.rnr.rnrjointmod.block.entity.ModBlockEntities;
+import com.rnr.rnrjointmod.dataattatchments.ModDataAttatchments;
 import com.rnr.rnrjointmod.item.ModCreativeModeTab;
 import com.rnr.rnrjointmod.item.ModItems;
 import com.rnr.rnrjointmod.keymappings.ModKeyMappings;
@@ -96,6 +97,7 @@ public class RnRJointMod {
         ModBlockEntities.register(modEventBus);
         ModMenuTypes.register(modEventBus);
         ModCreativeModeTab.register(modEventBus);
+        ModDataAttatchments.register(modEventBus);
         NeoForge.EVENT_BUS.register(this);
 
         // Register the item to a creative tab

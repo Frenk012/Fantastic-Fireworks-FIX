@@ -50,8 +50,9 @@ public class FireworkBeginning {
                 this.trail.pos = particle.getParticlePosition();
                 this.trail.spawnTrail();
             }
-            if(particle.getLifetime() == 1 && this.fireworkBall != null){
-                System.out.println("particle died");
+            System.out.println(particle.getLifetime() - particle.getAge());
+            if(particle.getAge() == particle.getLifetime() && this.fireworkBall != null){
+                this.fireworkBall.middlePos = particle.getParticlePosition();
                 this.fireworkBall.explodeFirework();
             }
         };
