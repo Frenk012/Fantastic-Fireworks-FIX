@@ -28,7 +28,8 @@ public class ModKeyMappings {
 
         if (OPEN_IMGUI_MENU.consumeClick() && Minecraft.getInstance().isWindowActive()) {
             System.out.println("f7");
-                Minecraft.getInstance().setScreen(new FireworkCakeScreen());
+                FireworkCakeScreen fireworkCakeScreen = new FireworkCakeScreen();
+                Minecraft.getInstance().setScreen(fireworkCakeScreen);
         }
 
     }
