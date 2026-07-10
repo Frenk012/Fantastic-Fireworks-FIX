@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.rnr.rnrjointmod.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8.5",
+  "client": [
+    "VfxRenderBridgeMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -2,6 +2,7 @@ package com.rnr.rnrjointmod.block.Custom;
 
 import com.mojang.serialization.MapCodec;
 import com.rnr.rnrjointmod.block.entity.FireworkCakeEntity;
+import com.rnr.rnrjointmod.block.entity.ModBlockEntities;
 import com.rnr.rnrjointmod.screen.custom.ClientScreenOpener;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
@@ -12,6 +13,8 @@ import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -27,22 +30,21 @@ public class FireworkCake extends BaseEntityBlock {
     }
 
     @Override
-    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-        if (level.getBlockEntity(pos) instanceof FireworkCakeEntity cake) {
-            cake.setup(level, pos);
-        }
-    }
-
-    @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (player.isCrouching()) {
             if (level.isClientSide) {
                 ClientScreenOpener.openFireworkEditor(pos);
             }
-        } else if (level.getBlockEntity(pos) instanceof FireworkCakeEntity cake) {
-            cake.shootFirework(level, pos.above());
+        } else if (!level.isClientSide && level.getBlockEntity(pos) instanceof FireworkCakeEntity cake) {
+            cake.triggerLaunch(level);
         }
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return level.isClientSide ? null
+                : createTickerHelper(type, ModBlockEntities.FIREWORK_CAKE_BE.get(), FireworkCakeEntity::serverTick);
     }
 
     @Override

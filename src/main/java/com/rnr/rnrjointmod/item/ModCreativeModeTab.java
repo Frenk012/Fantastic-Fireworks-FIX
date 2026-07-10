@@ -19,12 +19,7 @@ public class ModCreativeModeTab {
             () -> CreativeModeTab.builder()
                     .icon(() -> new ItemStack(ModBlocks.FIREWORK_CAKE.get()))
                     .title(Component.translatable("creativetab.rnrjointmod.rnr_tab"))
-                    .displayItems((itemDisplayParameters, output) -> {
-                        output.accept(ModBlocks.BLOCK);
-                        output.accept(ModBlocks.FIREWORK_CAKE);
-                        output.accept(ModItems.ITEM);
-                        output.accept(ModItems.PARTICALTESTER);
-                    })
+                    .displayItems((itemDisplayParameters, output) -> output.accept(ModBlocks.FIREWORK_CAKE))
                     .build());
 
     public static void register(IEventBus iEventBus) {

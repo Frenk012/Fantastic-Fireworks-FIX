@@ -13,10 +13,8 @@ public class ClientPayloadHandler {
                 return;
             }
             if (level.getBlockEntity(data.pos()) instanceof FireworkCakeEntity cake) {
-                cake.setup(level, data.pos());
-                cake.fireworkBeginning.deserializeNBT(level.registryAccess(), data.fireworkBeginning());
-                cake.fireworkBall.deserializeNBT(level.registryAccess(), data.fireworkBall());
-                cake.trail.deserializeNBT(level.registryAccess(), data.trail());
+                // launches are played server-side by Cascade; clients only sync settings
+                cake.applySyncTag(level.registryAccess(), data.data());
             }
         });
     }

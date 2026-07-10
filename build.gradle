@@ -46,6 +46,7 @@ repositories {
         url = "https://maven.theillusivec4.top/"
     }
     maven { url = 'https://maven.blamejared.com/' }
+    maven { url = 'https://raw.githubusercontent.com/ChocoBooyy/maven/main' } // Cascade
 }
 
 base {
@@ -146,7 +147,7 @@ dependencies {
     compileOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}:api"
     // Use the full Curios API jar at runtime
     runtimeOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
-    implementation("team.lodestar.lodestone:lodestone:1.21.1-1.8.3.808")
+    implementation 'dev.chocoboy.cascade:cascade-neoforge:1.0.0+1.21.1'
 
     compileOnly("foundry.imguimc:imguimc-neoforge-${project.minecraft_version}:${project.imguimc_version}")
     implementation "foundry.imguimc:imguimc-neoforge-1.21.1:2.0.0"

@@ -18,17 +18,15 @@ public class ServerPayloadHandler {
             if (level == null || !(level.getBlockEntity(data.pos()) instanceof FireworkCakeEntity cake)) {
                 return;
             }
-            cake.setup(level, data.pos());
-            cake.fireworkBeginning.deserializeNBT(level.registryAccess(), data.fireworkBeginning());
-            cake.fireworkBall.deserializeNBT(level.registryAccess(), data.fireworkBall());
-            cake.trail.deserializeNBT(level.registryAccess(), data.trail());
+            cake.applySyncTag(level.registryAccess(), data.data());
             cake.setChanged();
-            // broadcast the updated settings so every client stays in sync
-            PacketDistributor.sendToAllPlayers(new FireworkSettingsPayload(
-                    data.dimension(), data.pos(),
-                    cake.fireworkBeginning.serializeNBT(level.registryAccess()),
-                    cake.fireworkBall.serializeNBT(level.registryAccess()),
-                    cake.trail.serializeNBT(level.registryAccess())));
+            if (data.launch()) {
+                cake.triggerLaunch(level);
+            } else {
+                // broadcast the updated settings so every client stays in sync
+                PacketDistributor.sendToAllPlayers(new FireworkSettingsPayload(
+                        data.dimension(), data.pos(), cake.buildSyncTag(level.registryAccess()), false));
+            }
         });
     }
 }

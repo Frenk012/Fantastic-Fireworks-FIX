@@ -93,3 +93,13 @@ Example mod description.
 # stop your mod loading on the server for example.
 #[features.${mod_id}]
 #openGLVersion="[3.2,)"
+
+[[dependencies.${mod_id}]]
+    modId="cascade"
+    type="required"
+    versionRange="[1.0.0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[mixins]]
+    config="rnrjointmod.mixins.json"

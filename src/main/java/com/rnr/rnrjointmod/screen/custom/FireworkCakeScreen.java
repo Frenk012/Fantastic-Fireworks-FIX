@@ -2,11 +2,14 @@ package com.rnr.rnrjointmod.screen.custom;
 
 import com.rnr.rnrjointmod.Payloads.FireworkSettingsPayload;
 import com.rnr.rnrjointmod.block.entity.FireworkCakeEntity;
-import com.rnr.rnrjointmod.particals.FireworkBall;
-import com.rnr.rnrjointmod.particals.FireworkBeginning;
-import com.rnr.rnrjointmod.particals.Trail;
+import com.rnr.rnrjointmod.firework.ExplosionSettings;
+import com.rnr.rnrjointmod.firework.FireworkPresets;
+import com.rnr.rnrjointmod.firework.PresetStorage;
+import com.rnr.rnrjointmod.firework.RocketSettings;
 import foundry.imgui.api.ImGuiMC;
 import imgui.ImGui;
+import imgui.type.ImInt;
+import imgui.type.ImString;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -17,16 +20,33 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
+import java.util.List;
 
 public class FireworkCakeScreen extends Screen {
 
     private final BlockPos pos;
 
+    private final ImString cakeIdField = new ImString(64);
+    private final ImString presetNameField = new ImString(64);
+    private final ImInt builtinIndex = new ImInt(0);
+    private final ImInt customIndex = new ImInt(0);
+    private final ImInt shapeIndex = new ImInt(0);
+    private final ImInt spriteIndex = new ImInt(0);
+    private final ImInt rocketSpriteIndex = new ImInt(0);
+    private final ImInt motionIndex = new ImInt(0);
+    private List<String> customPresets = PresetStorage.names();
+    private String statusMessage = "";
+
     private boolean changed;
+    private boolean launchRequested;
 
     public FireworkCakeScreen(BlockPos pos) {
         super(Component.translatable("screen.rnrjointmod.firework_editor"));
         this.pos = pos;
+        Level level = Minecraft.getInstance().level;
+        if (level != null && level.getBlockEntity(pos) instanceof FireworkCakeEntity cake) {
+            cakeIdField.set(cake.cakeId);
+        }
     }
 
     @Override
@@ -55,159 +75,245 @@ public class FireworkCakeScreen extends Screen {
                 ImGui.end();
                 return;
             }
-            cake.setup(level, pos);
             changed = false;
+            launchRequested = false;
 
             ImGui.begin("Firework Editor");
-            ImGui.textWrapped("Selected Block: " + pos.getX() + " X, " + pos.getY() + " Y, " + pos.getZ() + " Z ");
-            if (ImGui.button("Launch")) {
-                cake.shootFirework(level, pos.above());
+            ImGui.textWrapped("Block: " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
+
+            renderIdSection(cake);
+            ImGui.separator();
+
+            if (ImGui.button("Launch!")) {
+                launchRequested = true;
+            }
+            ImGui.separator();
+
+            renderPresetSection(cake);
+            ImGui.separator();
+            renderAutomationSection(cake);
+            renderRocketSection(cake.rocket);
+            renderExplosionSection(cake.explosion);
+
+            if (!statusMessage.isEmpty()) {
+                ImGui.separator();
+                ImGui.textWrapped(statusMessage);
             }
 
-            FireworkBeginning body = cake.fireworkBeginning;
-            FireworkBall ball = cake.fireworkBall;
-            Trail trail = cake.trail;
-
-            if (ImGui.collapsingHeader("Rocket Body")) {
-                if (ImGui.checkbox("Use Trail", body.usetrail)) {
-                    body.usetrail = !body.usetrail;
-                    changed = true;
-                }
-                body.col1 = colorPicker("Color1", body.col1);
-                body.col2 = colorPicker("Color2", body.col2);
-                if (ImGui.checkbox("Random Color In Range (col1 - col2)", body.rancolinrange)) {
-                    body.rancolinrange = !body.rancolinrange;
-                    changed = true;
-                }
-
-                ImGui.textWrapped("Start Transparency : End Transparency");
-                float[] trans = {body.transparancy1, body.transparancy2};
-                if (ImGui.sliderFloat2("##0", trans, 0f, 1f)) {
-                    body.transparancy1 = trans[0];
-                    body.transparancy2 = trans[1];
-                    changed = true;
-                }
-
-                ImGui.textWrapped("Start Scale : End Scale");
-                float[] scale = {body.scale1, body.scale2};
-                if (ImGui.sliderFloat2("##1", scale, 0f, 10f)) {
-                    body.scale1 = scale[0];
-                    body.scale2 = scale[1];
-                    changed = true;
-                }
-
-                body.lifetime = sliderInt("Lifetime", "##2", body.lifetime, 0, 150);
-                body.gravity = sliderFloat("Gravity", "##3", body.gravity, 0f, 10f);
-                body.ranoffset = sliderFloat("Random Offset", "##4", body.ranoffset, 0f, 2.5f);
-
-                ImGui.textWrapped("Up Velocity : Up Acceleration");
-                float[] upspeed = {body.initalUpVelo, body.upwardsAcceleration};
-                if (ImGui.sliderFloat2("##5", upspeed, 0f, 5f)) {
-                    body.initalUpVelo = upspeed[0];
-                    body.upwardsAcceleration = upspeed[1];
-                    changed = true;
-                }
-            }
-
-            if (ImGui.collapsingHeader("Rocket Explosion")) {
-                if (ImGui.checkbox("Use Trail##fb", ball.usetrail)) {
-                    ball.usetrail = !ball.usetrail;
-                    changed = true;
-                }
-                ball.col1 = colorPicker("Color1##fb", ball.col1);
-                ball.col2 = colorPicker("Color2##fb", ball.col2);
-                if (ImGui.checkbox("Random Color In Range (col1 - col2)##fb", ball.rancolinrange)) {
-                    ball.rancolinrange = !ball.rancolinrange;
-                    changed = true;
-                }
-
-                ImGui.textWrapped("Start Transparency : End Transparency");
-                float[] trans = {ball.transparancy1, ball.transparancy2};
-                if (ImGui.sliderFloat2("##0fb", trans, 0f, 1f)) {
-                    ball.transparancy1 = trans[0];
-                    ball.transparancy2 = trans[1];
-                    changed = true;
-                }
-
-                ImGui.textWrapped("Start Scale : End Scale");
-                float[] scale = {ball.scale1, ball.scale2};
-                if (ImGui.sliderFloat2("##1fb", scale, 0f, 10f)) {
-                    ball.scale1 = scale[0];
-                    ball.scale2 = scale[1];
-                    changed = true;
-                }
-
-                ball.lifetime = sliderInt("Lifetime", "##2fb", ball.lifetime, 0, 150);
-                ball.gravity = sliderFloat("Gravity", "##3fb", ball.gravity, 0f, 10f);
-                ball.ranoffset = sliderFloat("Random Offset", "##4fb", ball.ranoffset, 0f, 2.5f);
-                ball.range = sliderFloat("Repulsion Range", "##5fb", ball.range, 0f, 10f);
-                ball.repulsionlength = sliderInt("Repulsion Lifetime", "##6fb", ball.repulsionlength, 0, 60);
-                ball.count = sliderInt("Particle Count", "##7fb", ball.count, 0, 400);
-            }
-
-            if (ImGui.collapsingHeader("Rocket Trail")) {
-                trail.col1 = colorPicker("Color1##t", trail.col1);
-                trail.col2 = colorPicker("Color2##t", trail.col2);
-                if (ImGui.checkbox("Random Color In Range (col1 - col2)##t", trail.rancolinrange)) {
-                    trail.rancolinrange = !trail.rancolinrange;
-                    changed = true;
-                }
-
-                ImGui.textWrapped("Start Transparency : End Transparency");
-                float[] trans = {trail.transparancy1, trail.transparancy2};
-                if (ImGui.sliderFloat2("##0t", trans, 0f, 1f)) {
-                    trail.transparancy1 = trans[0];
-                    trail.transparancy2 = trans[1];
-                    changed = true;
-                }
-
-                ImGui.textWrapped("Start Scale : End Scale");
-                float[] scale = {trail.scale1, trail.scale2};
-                if (ImGui.sliderFloat2("##1t", scale, 0f, 10f)) {
-                    trail.scale1 = scale[0];
-                    trail.scale2 = scale[1];
-                    changed = true;
-                }
-
-                trail.lifetime = sliderInt("Lifetime", "##2t", trail.lifetime, 0, 150);
-                trail.gravity = sliderFloat("Gravity", "##3t", trail.gravity, 0f, 10f);
-                trail.ranoffset = sliderFloat("Random Offset", "##4t", trail.ranoffset, 0f, 2.5f);
-            }
-
-            if (changed) {
+            if (changed || launchRequested) {
                 PacketDistributor.sendToServer(new FireworkSettingsPayload(
-                        level.dimension().location().toString(),
-                        pos,
-                        body.serializeNBT(level.registryAccess()),
-                        ball.serializeNBT(level.registryAccess()),
-                        trail.serializeNBT(level.registryAccess())));
+                        level.dimension().location().toString(), pos,
+                        cake.buildSyncTag(level.registryAccess()), launchRequested));
             }
             ImGui.end();
         }
     }
 
-    private Color colorPicker(String label, Color color) {
-        float[] rgb = color.getColorComponents(new float[3]);
-        if (ImGui.colorPicker3(label, rgb)) {
-            changed = true;
-            return new Color(rgb[0], rgb[1], rgb[2]);
+    private void renderRocketSection(RocketSettings rocket) {
+        if (!ImGui.collapsingHeader("Rocket (ascent)")) {
+            return;
         }
-        return color;
+        rocket.explosionHeight = dragFloat("Explosion Height (blocks)", "##rh", rocket.explosionHeight, 0.5f, 1f, 320f);
+        rocket.speed = dragFloat("Climb Speed (blocks/tick)", "##rs", rocket.speed, 0.02f, 0.05f, 5f);
+        rocket.spread = dragFloat("Wobble (0 = straight up)", "##rw", rocket.spread, 0.005f, 0f, 0.8f);
+        rocket.trailLength = dragInt("Trail Length", "##rt", rocket.trailLength, 0, 40);
+        rocket.size = dragFloat("Rocket Size", "##rz", rocket.size, 0.02f, 0.05f, 3f);
+
+        rocketSpriteIndex.set(rocket.sprite);
+        ImGui.textWrapped("Rocket Style");
+        if (ImGui.combo("##rsp", rocketSpriteIndex, ExplosionSettings.SPRITE_NAMES)) {
+            rocket.sprite = rocketSpriteIndex.get();
+            changed = true;
+        }
+        if (ImGui.checkbox("Glow (additive)##r", rocket.glow)) {
+            rocket.glow = !rocket.glow;
+            changed = true;
+        }
+        rocket.colorStart = colorPicker("Rocket Color (start)", "##rc1", rocket.colorStart);
+        rocket.colorEnd = colorPicker("Rocket Color (end)", "##rc2", rocket.colorEnd);
     }
 
-    private float sliderFloat(String label, String id, float value, float min, float max) {
+    private void renderExplosionSection(ExplosionSettings ex) {
+        if (!ImGui.collapsingHeader("Explosion")) {
+            return;
+        }
+        shapeIndex.set(ex.shape);
+        ImGui.textWrapped("Burst Shape");
+        if (ImGui.combo("##esh", shapeIndex, ExplosionSettings.SHAPE_NAMES)) {
+            ex.shape = shapeIndex.get();
+            changed = true;
+        }
+        ex.radius = dragFloat("Burst Radius (blocks)", "##er", ex.radius, 0.05f, 0.1f, 32f);
+        ex.count = dragInt("Particle Count", "##ec", ex.count, 1, 3000);
+        ex.speed = dragFloat("Expansion Speed", "##es", ex.speed, 0.01f, 0f, 3f);
+        ex.lifetime = dragInt("Particle Lifetime (ticks)", "##el", ex.lifetime, 1, 400);
+
+        ImGui.separator();
+        ImGui.textWrapped("Colors (gradient over particle life):");
+        int[] stops = {ex.colorCount};
+        if (ImGui.sliderInt("Color Stops##ecs", stops, 2, 4)) {
+            ex.colorCount = stops[0];
+            changed = true;
+        }
+        for (int i = 0; i < ex.colorCount; i++) {
+            ex.colors[i] = colorPicker("Color " + (i + 1), "##ecol" + i, ex.colors[i]);
+        }
+
+        ImGui.separator();
+        ImGui.textWrapped("Style:");
+        spriteIndex.set(ex.sprite);
+        if (ImGui.combo("Particle Look##esp", spriteIndex, ExplosionSettings.SPRITE_NAMES)) {
+            ex.sprite = spriteIndex.get();
+            changed = true;
+        }
+        if (ImGui.checkbox("Glow (additive, brighter)##e", ex.glow)) {
+            ex.glow = !ex.glow;
+            changed = true;
+        }
+        ImGui.sameLine();
+        if (ImGui.checkbox("World-lit (dimmer)##e", ex.lit)) {
+            ex.lit = !ex.lit;
+            changed = true;
+        }
+        if (ImGui.checkbox("Twinkle / strobe##e", ex.twinkle)) {
+            ex.twinkle = !ex.twinkle;
+            changed = true;
+        }
+        ImGui.sameLine();
+        if (ImGui.checkbox("Crackle (spark pops)##e", ex.crackle)) {
+            ex.crackle = !ex.crackle;
+            changed = true;
+        }
+        if (ex.crackle) {
+            ex.crackleCount = dragInt("Crackle Sparks per Particle", "##ecc", ex.crackleCount, 1, 40);
+            ex.crackleColor = colorPicker("Crackle Color", "##eccol", ex.crackleColor);
+        }
+        ex.stretch = dragFloat("Streaking (stretch along motion)", "##est", ex.stretch, 0.02f, 0f, 5f);
+        ex.spin = dragFloat("Spin", "##esn", ex.spin, 0.01f, 0f, 2f);
+        ex.trailLength = dragInt("Trail Length (0 = none)", "##etl", ex.trailLength, 0, 40);
+        ex.sizeStart = dragFloat("Size at Birth", "##ez1", ex.sizeStart, 0.01f, 0f, 5f);
+        ex.sizeEnd = dragFloat("Size at Death", "##ez2", ex.sizeEnd, 0.01f, 0f, 5f);
+        ex.alphaStart = dragFloat("Opacity at Birth", "##ea1", ex.alphaStart, 0.01f, 0f, 1f);
+        ex.alphaEnd = dragFloat("Opacity at Death", "##ea2", ex.alphaEnd, 0.01f, 0f, 1f);
+
+        ImGui.separator();
+        ImGui.textWrapped("Motion:");
+        motionIndex.set(ex.motionMode);
+        if (ImGui.combo("Burst Direction##em", motionIndex, ExplosionSettings.MOTION_NAMES)) {
+            ex.motionMode = motionIndex.get();
+            changed = true;
+        }
+        ex.gravity = dragFloat("Gravity (negative = rises)", "##eg", ex.gravity, 0.001f, -0.2f, 0.2f);
+        ex.drag = dragFloat("Air Drag", "##ed", ex.drag, 0.002f, 0f, 0.5f);
+        ex.turbulence = dragFloat("Turbulence (chaotic jitter)", "##etb", ex.turbulence, 0.002f, 0f, 0.5f);
+        ex.curlNoise = dragFloat("Curl Noise (fluid swirl)", "##ecn", ex.curlNoise, 0.002f, 0f, 0.5f);
+        ex.vortex = dragFloat("Vortex (spiral around center)", "##evx", ex.vortex, 0.002f, -0.5f, 0.5f);
+    }
+
+    private void renderIdSection(FireworkCakeEntity cake) {
+        ImGui.textWrapped("Block ID (for /firework launchid):");
+        ImGui.inputText("##cakeid", cakeIdField);
+        ImGui.sameLine();
+        if (ImGui.button("Apply ID")) {
+            String newId = cakeIdField.get().trim();
+            if (!newId.isEmpty()) {
+                cake.cakeId = newId;
+                changed = true;
+                statusMessage = "ID set to '" + newId + "'";
+            }
+        }
+    }
+
+    private void renderPresetSection(FireworkCakeEntity cake) {
+        ImGui.textWrapped("Built-in Presets:");
+        String[] builtinNames = FireworkPresets.BUILT_IN.stream().map(FireworkPresets.Preset::name).toArray(String[]::new);
+        ImGui.combo("##builtin", builtinIndex, builtinNames);
+        ImGui.sameLine();
+        if (ImGui.button("Apply##builtin")) {
+            FireworkPresets.BUILT_IN.get(builtinIndex.get()).apply().accept(cake);
+            changed = true;
+            statusMessage = "Applied preset '" + builtinNames[builtinIndex.get()] + "'";
+        }
+
+        ImGui.textWrapped("My Presets:");
+        if (customPresets.isEmpty()) {
+            ImGui.textDisabled("(none saved yet)");
+        } else {
+            if (customIndex.get() >= customPresets.size()) {
+                customIndex.set(0);
+            }
+            ImGui.combo("##custom", customIndex, customPresets.toArray(new String[0]));
+            ImGui.sameLine();
+            if (ImGui.button("Apply##custom")) {
+                String name = customPresets.get(customIndex.get());
+                if (PresetStorage.apply(name, cake)) {
+                    changed = true;
+                    statusMessage = "Applied preset '" + name + "'";
+                }
+            }
+            ImGui.sameLine();
+            if (ImGui.button("Delete##custom")) {
+                PresetStorage.delete(customPresets.get(customIndex.get()));
+                customPresets = PresetStorage.names();
+                statusMessage = "Preset deleted";
+            }
+        }
+
+        ImGui.inputTextWithHint("##presetname", "new preset name", presetNameField);
+        ImGui.sameLine();
+        if (ImGui.button("Save Current")) {
+            String name = presetNameField.get().trim();
+            if (!name.isEmpty()) {
+                PresetStorage.save(name, cake);
+                customPresets = PresetStorage.names();
+                statusMessage = "Saved preset '" + name + "'";
+            } else {
+                statusMessage = "Enter a preset name first";
+            }
+        }
+    }
+
+    private void renderAutomationSection(FireworkCakeEntity cake) {
+        if (!ImGui.collapsingHeader("Automation (timer)")) {
+            return;
+        }
+        if (ImGui.checkbox("Launch automatically", cake.autoLaunch)) {
+            cake.autoLaunch = !cake.autoLaunch;
+            changed = true;
+        }
+        float[] seconds = {cake.intervalTicks / 20f};
+        ImGui.textWrapped("Every N seconds:");
+        if (ImGui.dragFloat("##interval", seconds, 0.1f, 0.25f, 3600f)) {
+            cake.intervalTicks = Math.max((int) (seconds[0] * 20), 5);
+            changed = true;
+        }
+    }
+
+    /** Color stored as 0xRRGGBB int. */
+    private int colorPicker(String label, String id, int rgbInt) {
+        ImGui.textWrapped(label);
+        Color color = new Color(rgbInt);
+        float[] rgb = color.getColorComponents(new float[3]);
+        if (ImGui.colorEdit3(id, rgb)) {
+            changed = true;
+            return new Color(rgb[0], rgb[1], rgb[2]).getRGB() & 0xFFFFFF;
+        }
+        return rgbInt;
+    }
+
+    private float dragFloat(String label, String id, float value, float speed, float min, float max) {
         ImGui.textWrapped(label);
         float[] holder = {value};
-        if (ImGui.sliderFloat(id, holder, min, max)) {
+        if (ImGui.dragFloat(id, holder, speed, min, max)) {
             changed = true;
         }
         return holder[0];
     }
 
-    private int sliderInt(String label, String id, int value, int min, int max) {
+    private int dragInt(String label, String id, int value, int min, int max) {
         ImGui.textWrapped(label);
         int[] holder = {value};
-        if (ImGui.sliderInt(id, holder, min, max)) {
+        if (ImGui.dragInt(id, holder, 1, min, max)) {
             changed = true;
         }
         return holder[0];

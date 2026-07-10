@@ -1,88 +1,138 @@
 package com.rnr.rnrjointmod.block.entity;
 
 import com.rnr.rnrjointmod.Payloads.FireworkSettingsPayload;
-import com.rnr.rnrjointmod.particals.FireworkBall;
-import com.rnr.rnrjointmod.particals.FireworkBeginning;
-import com.rnr.rnrjointmod.particals.Trail;
+import com.rnr.rnrjointmod.firework.ExplosionSettings;
+import com.rnr.rnrjointmod.firework.FireworkCakeRegistry;
+import com.rnr.rnrjointmod.firework.RocketSettings;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 public class FireworkCakeEntity extends BlockEntity {
-    public FireworkBeginning fireworkBeginning;
-    public FireworkBall fireworkBall;
-    public Trail trail;
+    public final RocketSettings rocket = new RocketSettings();
+    public final ExplosionSettings explosion = new ExplosionSettings();
+
+    /** Human-readable id shown in the GUI and usable with the /firework command. */
+    public String cakeId = "";
+    public boolean autoLaunch = false;
+    /** Ticks between automatic launches (20 ticks = 1 second). */
+    public int intervalTicks = 100;
+    private int timer = 0;
 
     public FireworkCakeEntity(BlockPos pos, BlockState blockState) {
         super(ModBlockEntities.FIREWORK_CAKE_BE.get(), pos, blockState);
     }
 
-    /** Lazily creates the particle setting objects and wires them together. */
-    public void setup(Level level, BlockPos pos) {
-        Vec3 fpos = pos.getCenter();
-        if (fireworkBeginning == null) {
-            fireworkBeginning = new FireworkBeginning(level, fpos);
+    public static void serverTick(Level level, BlockPos pos, BlockState state, FireworkCakeEntity cake) {
+        if (!cake.autoLaunch) {
+            cake.timer = 0;
+            return;
         }
-        if (fireworkBall == null) {
-            fireworkBall = new FireworkBall(level, fpos);
+        if (++cake.timer >= Math.max(cake.intervalTicks, 5)) {
+            cake.timer = 0;
+            cake.triggerLaunch(level);
         }
-        if (trail == null) {
-            trail = new Trail(level, fpos);
-        }
-        fireworkBeginning.fireworkBall = fireworkBall;
-        fireworkBeginning.trail = trail;
-        fireworkBall.trail = trail;
     }
 
-    public void shootFirework(Level level, BlockPos pos) {
-        setup(level, pos);
-        // settings may have been created during world load when the level was still null
-        fireworkBeginning.level = level;
-        fireworkBall.level = level;
-        trail.level = level;
-        if (!level.isClientSide) {
-            PacketDistributor.sendToAllPlayers(new FireworkSettingsPayload(
-                    level.dimension().location().toString(),
-                    getBlockPos(),
-                    fireworkBeginning.serializeNBT(level.registryAccess()),
-                    fireworkBall.serializeNBT(level.registryAccess()),
-                    trail.serializeNBT(level.registryAccess())));
+    /** Server side: plays the firework - Cascade streams it to every nearby client. */
+    public void triggerLaunch(Level level) {
+        if (level instanceof ServerLevel serverLevel) {
+            rocket.build(explosion.build())
+                    .play(serverLevel, getBlockPos().above().getCenter());
         }
-        fireworkBeginning.pos = pos.getCenter();
-        fireworkBeginning.BodyParticles();
+    }
+
+    /** Full state as one tag - used for NBT persistence and network sync. */
+    public CompoundTag buildSyncTag(HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        tag.put("rocket", rocket.save());
+        tag.put("explosion", explosion.save());
+        tag.putString("cakeid", cakeId);
+        tag.putBoolean("autolaunch", autoLaunch);
+        tag.putInt("intervalticks", intervalTicks);
+        return tag;
+    }
+
+    public void applySyncTag(HolderLookup.Provider registries, CompoundTag tag) {
+        rocket.load(tag.getCompound("rocket"));
+        explosion.load(tag.getCompound("explosion"));
+        if (tag.contains("autolaunch")) {
+            autoLaunch = tag.getBoolean("autolaunch");
+        }
+        if (tag.contains("intervalticks")) {
+            intervalTicks = Math.max(tag.getInt("intervalticks"), 5);
+        }
+        if (tag.contains("cakeid")) {
+            setCakeId(tag.getString("cakeid"));
+        }
+    }
+
+    public void setCakeId(String newId) {
+        newId = newId.trim();
+        if (newId.equals(cakeId)) {
+            return;
+        }
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            FireworkCakeRegistry.unregister(cakeId, globalPos(serverLevel));
+            cakeId = newId;
+            FireworkCakeRegistry.register(cakeId, globalPos(serverLevel));
+        } else {
+            cakeId = newId;
+        }
+    }
+
+    private GlobalPos globalPos(Level level) {
+        return GlobalPos.of(level.dimension(), getBlockPos());
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            if (cakeId.isEmpty()) {
+                cakeId = "cake_" + getBlockPos().getX() + "_" + getBlockPos().getY() + "_" + getBlockPos().getZ();
+            }
+            FireworkCakeRegistry.register(cakeId, globalPos(serverLevel));
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            FireworkCakeRegistry.unregister(cakeId, globalPos(serverLevel));
+        }
+        super.setRemoved();
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        if (getLevel() instanceof ServerLevel serverLevel) {
+            FireworkCakeRegistry.unregister(cakeId, globalPos(serverLevel));
+        }
+        super.onChunkUnloaded();
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        if (fireworkBeginning != null && fireworkBall != null && trail != null) {
-            tag.put("fireworkbeginning", fireworkBeginning.serializeNBT(registries));
-            tag.put("fireworkball", fireworkBall.serializeNBT(registries));
-            tag.put("trail", trail.serializeNBT(registries));
-        }
+        tag.put("fireworkcake", buildSyncTag(registries));
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        setup(getLevel(), getBlockPos());
-        if (tag.contains("fireworkbeginning")) {
-            fireworkBeginning.deserializeNBT(registries, tag.getCompound("fireworkbeginning"));
-        }
-        if (tag.contains("fireworkball")) {
-            fireworkBall.deserializeNBT(registries, tag.getCompound("fireworkball"));
-        }
-        if (tag.contains("trail")) {
-            trail.deserializeNBT(registries, tag.getCompound("trail"));
+        if (tag.contains("fireworkcake")) {
+            applySyncTag(registries, tag.getCompound("fireworkcake"));
         }
     }
 
