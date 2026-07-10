@@ -1,10 +1,7 @@
 {
   "variants": {
-    "lit=false": {
-      "model": ""
-    },
-    "lit=true": {
-      "model": ""
+    "": {
+      "model": "rnrjointmod:block/firework_cake"
     }
   }
 }

@@ -1,7 +1,5 @@
 package com.rnr.rnrjointmod.item;
 
-
-
 import com.rnr.rnrjointmod.RnRJointMod;
 import com.rnr.rnrjointmod.item.custom.ParticleTester;
 import net.minecraft.world.item.Item;
@@ -21,7 +19,4 @@ public class ModItems {
     public static void register(IEventBus eventBus){
         ITEMS.register(eventBus);
     }
-
-
-
 }

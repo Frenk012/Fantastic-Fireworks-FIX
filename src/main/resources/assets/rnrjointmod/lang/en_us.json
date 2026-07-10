@@ -1,13 +1,15 @@
 {
-  "itemGroup.rnrjointmod": "RnR Joint Mod Tab",
-  "block.rnrjointmod.example_block": "Example Block",
-  "item.rnrjointmod.example_item": "Example Item",
+  "creativetab.rnrjointmod.rnr_tab": "Fantastic Fireworks",
+
+  "block.rnrjointmod.firework_cake": "Firework Cake",
+  "block.rnrjointmod.block": "RnR Block",
+  "item.rnrjointmod.item": "RnR Item",
+  "item.rnrjointmod.particletester": "Particle Tester",
+
+  "key.rnrjointmod.open_imgui_menu": "Open Firework Editor",
+  "screen.rnrjointmod.firework_editor": "Firework Editor",
 
   "rnrjointmod.configuration.title": "RnR Joint Mod Configs",
   "rnrjointmod.configuration.section.rnrjointmod.common.toml": "RnR Joint Mod Configs",
-  "rnrjointmod.configuration.section.rnrjointmod.common.toml.title": "RnR Joint Mod Configs",
-  "rnrjointmod.configuration.items": "Item List",
-  "rnrjointmod.configuration.logDirtBlock": "Log Dirt Block",
-  "rnrjointmod.configuration.magicNumberIntroduction": "Magic Number Text",
-  "rnrjointmod.configuration.magicNumber": "Magic Number"
+  "rnrjointmod.configuration.section.rnrjointmod.common.toml.title": "RnR Joint Mod Configs"
 }

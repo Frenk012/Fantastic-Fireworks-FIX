@@ -1,0 +1,51 @@
+{
+  "format_version": "1.9.0",
+  "credit": "Made with Blockbench",
+  "texture_size": [32, 32],
+  "textures": {
+    "0": "rnrjointmod:block/firework_cake",
+    "particle": "rnrjointmod:block/firework_cake"
+  },
+  "elements": [
+    {
+      "from": [2, 0, 2],
+      "to": [14, 8, 14],
+      "faces": {
+        "north": {"uv": [6, 0, 12, 4], "texture": "#0"},
+        "east": {"uv": [6, 4, 12, 8], "texture": "#0"},
+        "south": {"uv": [6, 8, 12, 12], "texture": "#0"},
+        "west": {"uv": [0, 12, 6, 16], "texture": "#0"},
+        "up": {"uv": [6, 6, 0, 0], "texture": "#0"},
+        "down": {"uv": [6, 6, 0, 12], "texture": "#0"}
+      }
+    }
+  ],
+  "gui_light": "front",
+  "display": {
+    "thirdperson_righthand": {
+      "translation": [0, 1, 0]
+    },
+    "thirdperson_lefthand": {
+      "translation": [0, 0.75, 0]
+    },
+    "ground": {
+      "translation": [0, 4.5, 0]
+    },
+    "gui": {
+      "rotation": [30, -135, 0],
+      "translation": [0, 1.5, 0],
+      "scale": [0.825, 0.825, 0.825]
+    },
+    "head": {
+      "translation": [0, 14.25, 0]
+    },
+    "fixed": {
+      "rotation": [-90, 0, 0],
+      "translation": [0, -0.25, -6]
+    },
+    "on_shelf": {
+      "rotation": [90, 0, 0],
+      "translation": [0, 0, 3.25]
+    }
+  }
+}
